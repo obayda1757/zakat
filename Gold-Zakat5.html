@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>সোনা, রুপা মূল্য তালিকা ও যাকাত ক্যালকুলেটর</title>
+
+    <style>
+        /* --- ১. গ্লোবাল এবং বেস স্টাইল --- */
+        body {
+            font-family: 'Tiro Bangla', Arial, sans-serif;
+            background-color: #f4f7f6; /* হালকা ধূসর ব্যাকগ্রাউন্ড */
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h2 { 
+            text-align: center;
+            color: #004d99; /* ডিপ নীল */
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h3 {
+            color: #007bff;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            border-left: 4px solid #007bff;
+            padding-left: 10px;
+        }
+
+        /* --- ২. মূল্য তালিকা ও টেবিলের স্টাইল --- */
+        .price-table-custom {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            border-radius: 8px;
+            overflow: hidden; /* বর্ডার রেডিয়াসের জন্য */
+        }
+        .price-table-custom th, 
+        .price-table-custom td {
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            text-align: center;
+        }
+        .price-table-custom thead th {
+            background-color: #004d99;
+            color: white;
+            font-weight: bold;
+            border-bottom: 3px solid #003366;
+        }
+        .unit-column {
+            font-weight: bold;
+            text-align: left !important;
+            background-color: #f8f8f8;
+        }
+        /* টেবিল রিডেবিলিটির জন্য জিব্রা স্ট্রাইপিং */
+        .price-table-custom tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .price-table-custom tbody tr:hover {
+            background-color: #eef; /* হোভার ইফেক্ট */
+        }
+        .gold-row-1, .gold-row-2, .gold-row-3, .gold-row-4 { background-color: #fffde7; }
+        .silver-row-1, .silver-row-2, .silver-row-3, .silver-row-4 { background-color: #f5f7f9; }
+
+        /* --- ৩. একক-পরিমাণ ক্যালকুলেটর স্টাইল --- */
+        .calculator-container {
+            max-width: 400px;
+            margin: 30px auto;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            border: 1px solid #ddd;
+        }
+        .calculator-form label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        .calculator-form input[type="number"],
+        .calculator-form select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box; 
+            font-size: 16px;
+        }
+        .radio-group {
+            margin-bottom: 20px;
+            padding: 5px 0;
+        }
+        .radio-group label {
+            font-weight: normal;
+            display: inline-block;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        .calculator-form button,
+        .zakat-calculator-container button {
+            width: 100%;
+            padding: 14px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 17px;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
+        }
+        .calculator-form button:hover,
+        .zakat-calculator-container button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        .results-container {
+            margin-top: 20px;
+            padding: 15px;
+            border-top: 2px solid #eee;
+            background-color: #f8fafd;
+            border-radius: 6px;
+        }
+        .results-container p {
+            margin: 8px 0;
+            font-size: 16px;
+        }
+        .results-container span {
+            font-weight: bold;
+            color: #0056b3;
+        }
+        .zakat-result {
+            color: #d9534f;
+            font-size: 1.2em !important;
+            font-weight: bold !important;
+        }
+
+        /* --- ৪. যাকাত ক্যালকুলেটর স্টাইল (Nisab Calculator) --- */
+        .zakat-calculator-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            border: 2px solid #007bff;
+        }
+        .zakat-calculator-container .instruction {
+            font-size: 0.95em;
+            color: #666;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        /* অলংকার ইনপুট টেবিল স্টাইল */
+        .input-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 1em;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .input-table th {
+            background-color: #e9ecef;
+            color: #333;
+            padding: 10px;
+            text-align: center;
+        }
+        .input-table td {
+            border: 1px solid #eee;
+            padding: 10px 15px;
+        }
+        .input-table tbody tr:nth-child(odd) { background-color: #fcfcfc; }
+        .input-table tbody tr:nth-child(even) { background-color: #f5f5f5; }
+        
+        .input-table input[type="number"] {
+            width: 120px;
+            padding: 8px;
+            text-align: right;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            display: block;
+            margin-left: auto;
+            font-size: 15px;
+        }
+        
+        /* ফিনান্সিয়াল ইনপুট স্টাইল */
+        .financial-inputs { margin-top: 15px; }
+        .financial-inputs label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .financial-inputs input[type="number"],
+        .financial-inputs select {
+            width: 100%;
+            max-width: 300px; 
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        
+        /* ফলাফল স্টাইল */
+        .zakat-results-container {
+            margin-top: 30px;
+            padding: 20px;
+            border-top: 2px solid #ddd;
+            background-color: #e6f7ff; /* হালকা নীল ব্যাকগ্রাউন্ড */
+            border-radius: 8px;
+        }
+        .nisab-result {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #004d99;
+            margin-top: 10px;
+        }
+        .final-zakat-result {
+            font-size: 1.8em;
+            font-weight: extra-bold;
+            color: #d9534f;
+            margin-top: 15px;
+        }
+        /* ইনপুট একক রেডিও গ্রুপ */
+        .zakat-unit-group {
+             margin-bottom: 25px;
+             padding: 15px;
+             border: 2px solid #ffcc80; 
+             border-radius: 8px;
+             background-color: #fff8e1; /* হালকা কমলা */
+             display: flex;
+             gap: 20px;
+             align-items: center;
+        }
+        .zakat-unit-group label {
+            font-weight: normal;
+            margin-top: 0;
+        }
+        .zakat-unit-group input[type="radio"] {
+             transform: scale(1.2); /* রেডিও বাটন বড় করা */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="dynamic-price-table-container">
+        <h2>সোনা ও রুপার বর্তমান মূল্য তালিকা</h2>
+        <p style="text-align: center; color: #555;">মূল্যগুলি ১ গ্রাম-এর দামের ভিত্তিতে স্বয়ংক্রিয়ভাবে গণনা করা হয়েছে। সকল মূল্য বাংলাদেশি টাকায় (৳) দেয়া হয়েছে।</p>
+    </div>
+
+    <div class="calculator-container">
+        <h2>স্বর্ণ ও রৌপ্য মূল্য ও যাকাত ক্যালকুলেটর (একক)</h2>
+        <div class="calculator-form">
+            
+            <label>ধাতু নির্বাচন করুন:</label>
+            <div class="radio-group" id="metal-select">
+                <input type="radio" id="metal-gold" name="metal" value="gold" checked>
+                <label for="metal-gold">সোনা</label>
+                <input type="radio" id="metal-silver" name="metal" value="silver">
+                <label for="metal-silver">রুপা</label>
+            </div>
+
+            <label for="category-select">ক্যাটাগরি নির্বাচন করুন:</label>
+            <select id="category-select">
+                </select>
+
+            <label>পরিমাণ একক:</label>
+            <div class="radio-group" id="unit-select">
+                <input type="radio" id="unit-bhor" name="unit" value="bhor" checked>
+                <label for="unit-bhor">ভরি</label>
+                <input type="radio" id="unit-ana" name="unit" value="ana">
+                <label for="unit-ana">আনা</label>
+                <input type="radio" id="unit-gram" name="unit" value="gram">
+                <label for="unit-gram">গ্রাম</label>
+            </div>
+
+            <label for="amount-input">পরিমাণ লিখুন:</label>
+            <input type="number" id="amount-input" value="1" min="0.01" step="0.01">
+
+            <button onclick="calculatePriceAndZakat()">মূল্য ও যাকাত হিসাব করুন</button>
+        </div>
+
+        <div class="results-container">
+            <h3>একক হিসাবের ফলাফল:</h3>
+            <p><strong>ধাতুর প্রকার:</strong> <span id="result-metal-type">--</span></p>
+            <p><strong>ক্যাটাগরি:</strong> <span id="result-category">--</span></p>
+            <p><strong>পরিমাণ:</strong> <span id="result-amount">--</span></p>
+            <hr style="border-top: 1px dashed #ccc;">
+            <p><strong>মোট মূল্য (BDT):</strong> <span id="result-total-price">--</span></p>
+            <p class="zakat-result"><strong>প্রদেয় যাকাত (২.৫%): BDT</strong> <span id="result-zakat">--</span></p>
+        </div>
+    </div>
+    
+    <div class="zakat-calculator-container">
+        <h2>সম্পদ ও যাকাত হিসাব (Nisab Calculator)</h2>
+
+        <div class="zakat-section">
+            <h3>১. অলংকার ইনপুট (<span id="selected-zakat-unit-text">ভরি</span> হিসেবে)</h3>
+            
+            <div class="zakat-unit-group" id="zakat-unit-select">
+                <label style="font-size: 1.1em; color: #333;">ইনপুট একক নির্বাচন করুন:</label>
+                <input type="radio" id="zakat-unit-bhor" name="zakat_unit" value="bhor" checked>
+                <label for="zakat-unit-bhor">ভরি</label>
+                <input type="radio" id="zakat-unit-ana" name="zakat_unit" value="ana">
+                <label for="zakat-unit-ana">আনা</label>
+                <input type="radio" id="zakat-unit-gram" name="zakat_unit" value="gram">
+                <label for="zakat-unit-gram">গ্রাম</label>
+            </div>
+
+            <p class="instruction">অলংকারের পরিমাণ নির্বাচিত এককে লিখুন। যে ক্যাটাগরিতে অলংকার নেই, সেখানে '০' (শূন্য) রাখুন।</p>
+            
+            <table id="ornament-input-table" class="input-table">
+                <thead>
+                    <tr>
+                        <th style="width: 70%;">ধাতুর ক্যাটাগরি</th>
+                        <th style="width: 30%;">পরিমাণ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+            
+            <hr style="border-top: 1px solid #ddd; margin: 30px 0;">
+            
+            <h3>২. অন্যান্য সম্পদ ও দায় ইনপুট (BDT)</h3>
+            <div class="financial-inputs">
+                
+                <label for="discount-select">বিক্রয় মূল্য ছাড় (Optional):</label>
+                <select id="discount-select">
+                    <option value="0">কোনো ছাড় নেই (০%)</option>
+                    <option value="0.20">২০% ছাড় (-)</option>
+                    <option value="0.15">১৫% ছাড় (-)</option>
+                    <option value="0.10">১০% ছাড় (-)</option>
+                </select>
+                
+                <label for="cash-input">জমানো/আয়ের টাকা (+):</label>
+                <input type="number" id="cash-input" value="0" min="0" step="1000">
+
+                <label for="other-assets-input">অন্যান্য সম্পদের মূল্য (+):</label>
+                <input type="number" id="other-assets-input" value="0" min="0" step="1000">
+
+                <label for="debt-input">ঋণ (-):</label>
+                <input type="number" id="debt-input" value="0" min="0" step="1000">
+                
+            </div>
+            
+            <button onclick="calculateFullZakat()">মোট যাকাত হিসাব করুন</button>
+        </div>
+
+        <div class="zakat-results-container">
+            <h3>মোট যাকাত ও সম্পদের হিসাব</h3>
+            
+            <p><strong>মোট অলংকার মূল্য (BDT):</strong> <span id="result-total-ornament-price">--</span></p>
+            <p><strong>বিক্রয় মূল্য ছাড় (BDT):</strong> <span id="result-discount-amount">--</span></p>
+            <p><strong>মোট সম্পদ (টাকা, অন্যান্য):</strong> <span id="result-total-assets">--</span></p>
+            <p><strong>মোট ঋণ (BDT):</strong> <span id="result-total-debt">--</span></p>
+            <hr style="border-top: 1px dashed #999; margin: 15px 0;">
+            <p class="nisab-result"><strong>মোট যাকাত আদায়যোগ্য অর্থ (BDT):</strong> <span id="result-nisab-amount">--</span></p>
+            <p class="final-zakat-result"><strong>প্রদেয় যাকাত (২.৫%): BDT</strong> <span id="result-final-zakat">--</span></p>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * এডমিন কনফিগারেশন সেকশন: ১ গ্রাম-এর দাম 
+         */
+        const priceDataInGram = {
+            gold: {
+                'সনাতন সোনা': 11379,
+                '১৮ ক্যারেট সোনা': 13705,
+                '২১ ক্যারেট সোনা': 15989,
+                '২২ ক্যারেট সোনা': 16751
+            },
+            silver: {
+                'সনাতন রুপা': 191,
+                '১৮ ক্যারেট রুপা': 254,
+                '২১ ক্যারেট রুপা': 296,
+                '২২ ক্যারেট রুপা': 311
+            }
+        };
+
+        // ওজনের মান
+        const GRAM_PER_BHOR = 11.66;
+        const GRAM_PER_ANA = 0.73;
+
+        // Gold ও Silver-এর ক্যাটাগরির নামের ক্রম
+        const GOLD_CATEGORIES = Object.keys(priceDataInGram.gold);
+        const SILVER_CATEGORIES = Object.keys(priceDataInGram.silver);
+        const ALL_CATEGORIES = [
+             ...GOLD_CATEGORIES.map(c => ({ metal: 'gold', name: c, className: 'gold-row' })),
+             ...SILVER_CATEGORIES.map(c => ({ metal: 'silver', name: c, className: 'silver-row' }))
+        ];
+
+        // বাংলা সংখ্যায় সুন্দরভাবে দেখানো
+        function formatBDT(number) {
+            if (typeof number !== 'number') return '--';
+            return number.toLocaleString('bn-BD', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        // --- ১. মূল্য তালিকা তৈরির ফাংশন ---
+        function calculateAndBuildTable(priceData) {
+            const units = [
+                { name: "১ গ্রাম", gram: 1 },
+                { name: "১ ভরি", gram: GRAM_PER_BHOR },
+                { name: "১ আনা", gram: GRAM_PER_ANA }
+            ];
+
+            let html = '<table class="price-table-custom">';
+            html += '<thead><tr>';
+            html += '<th class="unit-column">ক্যাটাগরি</th>';
+            units.forEach(u => {
+                html += `<th class="weight-column">${u.name}</th>`;
+            });
+            html += '</tr></thead>';
+
+            html += '<tbody>';
+
+            // সোনার সারি
+            let goldIndex = 1;
+            Object.keys(priceData.gold).forEach(category => {
+                html += `<tr class="gold-row-${goldIndex}"><td class="unit-column">${category}</td>`;
+                units.forEach(u => {
+                    const price = u.gram * priceData.gold[category];
+                    html += `<td>${formatBDT(Math.round(price))}</td>`;
+                });
+                html += '</tr>';
+                goldIndex++;
+            });
+
+            // রুপার সারি
+            let silverIndex = 1;
+            Object.keys(priceData.silver).forEach(category => {
+                html += `<tr class="silver-row-${silverIndex}"><td class="unit-column">${category}</td>`;
+                units.forEach(u => {
+                    const price = u.gram * priceData.silver[category];
+                    html += `<td>${formatBDT(Math.round(price))} </td>`;
+                });
+                html += '</tr>';
+                silverIndex++;
+            });
+
+            html += '</tbody></table>';
+            return html;
+        }
+
+        // --- ২. একক-পরিমাণ ক্যালকুলেটরের ফাংশন ---
+
+        function loadCategories(metalType) {
+            const categorySelect = document.getElementById('category-select');
+            categorySelect.innerHTML = ''; 
+
+            const categories = priceDataInGram[metalType];
+            if (categories) {
+                Object.keys(categories).forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category; 
+                    option.textContent = category; 
+                    categorySelect.appendChild(option);
+                });
+            }
+        }
+
+        function calculatePriceAndZakat() {
+            const selectedMetal = document.querySelector('#metal-select input[name="metal"]:checked').value;
+            const categorySelect = document.getElementById('category-select');
+            const selectedCategory = categorySelect.value;
+            const categoryName = categorySelect.options[categorySelect.selectedIndex].text; 
+            
+            const selectedUnit = document.querySelector('#unit-select input[name="unit"]:checked').value;
+            const amountInput = document.getElementById('amount-input');
+            const amount = parseFloat(amountInput.value);
+
+            if (isNaN(amount) || amount <= 0 || !selectedCategory) {
+                alert("পরিমাণ বা ক্যাটাগরি সঠিকভাবে নির্বাচন করুন।");
+                return;
+            }
+            
+            const pricePerGram = priceDataInGram[selectedMetal][selectedCategory];
+
+            let totalGram = amount;
+            let unitText = '';
+            
+            if (selectedUnit === 'bhor') {
+                totalGram = amount * GRAM_PER_BHOR;
+                unitText = ' ভরি';
+            } else if (selectedUnit === 'ana') {
+                totalGram = amount * GRAM_PER_ANA;
+                unitText = ' আনা';
+            } else { // 'gram'
+                unitText = ' গ্রাম';
+            }
+
+            const totalPrice = totalGram * pricePerGram;
+            const zakatAmount = totalPrice * 0.025; 
+
+            const metalName = selectedMetal === 'gold' ? 'সোনা' : 'রুপা';
+            
+            document.getElementById('result-metal-type').textContent = metalName;
+            document.getElementById('result-category').textContent = categoryName;
+            document.getElementById('result-amount').textContent = amount.toFixed(2).replace(/\.00$/, '') + unitText;
+            
+            document.getElementById('result-total-price').textContent = formatBDT(Math.round(totalPrice));
+            document.getElementById('result-zakat').textContent = formatBDT(Math.round(zakatAmount));
+        }
+
+        // --- ৩. যাকাত ও সম্পদ ক্যালকুলেটরের ফাংশন ---
+
+        function convertToGram(amount, unit) {
+            if (unit === 'bhor') {
+                return amount * GRAM_PER_BHOR;
+            } else if (unit === 'ana') {
+                return amount * GRAM_PER_ANA;
+            } else { // 'gram'
+                return amount;
+            }
+        }
+        
+        function getUnitText(unit) {
+            if (unit === 'bhor') return 'ভরি';
+            if (unit === 'ana') return 'আনা';
+            return 'গ্রাম';
+        }
+
+        /**
+         * অলংকার ইনপুট টেবিল তৈরি (Vertical Layout)
+         */
+        function buildZakatInputTable() {
+            const tableBody = document.querySelector('#ornament-input-table tbody');
+            tableBody.innerHTML = '';
+            
+            let html = '';
+            
+            ALL_CATEGORIES.forEach(item => {
+                const category = item.name;
+                const inputId = `input-${item.metal}-${category.replace(/\s/g, '-')}`; 
+                
+                html += `<tr>`;
+                html += `<td>${category} (${item.metal === 'gold' ? 'সোনা' : 'রুপা'})</td>`; 
+                // ডাটা ইনসার্ট ফিল্ড, ডিফল্ট value="0"
+                html += `<td><input type="number" id="${inputId}" value="0" min="0" step="0.01"></td>`;
+                html += `</tr>`;
+            });
+
+            tableBody.innerHTML = html;
+        }
+        
+        /**
+         * ইনপুট এককের নাম পরিবর্তন করা 
+         */
+        function updateZakatUnitText() {
+            const selectedUnit = document.querySelector('#zakat-unit-select input[name="zakat_unit"]:checked').value;
+            const unitText = getUnitText(selectedUnit);
+            document.getElementById('selected-zakat-unit-text').textContent = unitText;
+        }
+
+        /**
+         * মোট যাকাত হিসাব করার মূল ফাংশন (Nisab Calculator)
+         */
+        function calculateFullZakat() {
+            const selectedUnit = document.querySelector('#zakat-unit-select input[name="zakat_unit"]:checked').value;
+            let totalOrnamentPrice = 0;
+
+            // ১. অলংকার মূল্যের হিসাব
+            ALL_CATEGORIES.forEach(item => {
+                const category = item.name;
+                const metal = item.metal;
+                const inputId = `input-${metal}-${category.replace(/\s/g, '-')}`;
+                
+                const amount = parseFloat(document.getElementById(inputId).value) || 0;
+                
+                if (amount > 0) {
+                    const totalGram = convertToGram(amount, selectedUnit);
+                    const pricePerGram = priceDataInGram[metal][category];
+                    totalOrnamentPrice += totalGram * pricePerGram;
+                }
+            });
+
+            // ২. অন্যান্য সম্পদ ও দায় (সকল ইনপুট ভ্যালু "0" দিয়ে শুরু)
+            const discountRate = parseFloat(document.getElementById('discount-select').value);
+            const cashAmount = parseFloat(document.getElementById('cash-input').value) || 0;
+            const otherAssets = parseFloat(document.getElementById('other-assets-input').value) || 0;
+            const debtAmount = parseFloat(document.getElementById('debt-input').value) || 0;
+
+            // ৩. ছাড় ও যাকাত আদায়যোগ্য অর্থ
+            const discountAmount = totalOrnamentPrice * discountRate;
+            const discountedOrnamentPrice = totalOrnamentPrice - discountAmount;
+            
+            const nisabAmount = (discountedOrnamentPrice + cashAmount + otherAssets) - debtAmount;
+
+            const finalZakat = nisabAmount > 0 ? nisabAmount * 0.025 : 0;
+            
+            // ৬. ফলাফল প্রদর্শন
+            document.getElementById('result-total-ornament-price').textContent = formatBDT(Math.round(totalOrnamentPrice));
+            document.getElementById('result-discount-amount').textContent = formatBDT(Math.round(discountAmount));
+            document.getElementById('result-total-assets').textContent = formatBDT(Math.round(cashAmount + otherAssets));
+            document.getElementById('result-total-debt').textContent = formatBDT(Math.round(debtAmount));
+            document.getElementById('result-nisab-amount').textContent = formatBDT(Math.round(nisabAmount));
+            document.getElementById('result-final-zakat').textContent = formatBDT(Math.round(finalZakat));
+        }
+
+
+        // --- পেজ লোড হলে ফাংশনগুলো চালু করা ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // ১. মূল্য তালিকা ইনজেক্ট করা 
+            const container = document.getElementById('dynamic-price-table-container');
+            if (container) {
+                container.innerHTML += calculateAndBuildTable(priceDataInGram);
+            }
+
+            // ২. একক-পরিমাণ ক্যালকুলেটর সেটআপ 
+            const metalRadios = document.querySelectorAll('#metal-select input[name="metal"]');
+            metalRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    loadCategories(e.target.value);
+                });
+            });
+            loadCategories('gold'); 
+
+            // ৩. যাকাত ক্যালকুলেটর সেটআপ
+            buildZakatInputTable(); 
+            updateZakatUnitText(); 
+            
+            // একক পরিবর্তনের ইভেন্ট লিসেনার সেট করা
+            const zakatUnitRadios = document.querySelectorAll('#zakat-unit-select input[name="zakat_unit"]');
+            zakatUnitRadios.forEach(radio => {
+                radio.addEventListener('change', updateZakatUnitText);
+            });
+        });
+    </script>
+</body>
+</html>
